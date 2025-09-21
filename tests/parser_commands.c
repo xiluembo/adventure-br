@@ -80,6 +80,68 @@ check_too_many_words(void)
 }
 
 static void
+check_stopword_directions(void)
+{
+        char tokens[2][WORDSIZE];
+        size_t count = 0;
+        int status;
+
+        status = adventure_parse_command("o", tokens, &count);
+        if (status != PARSE_OK)
+                abort();
+        assert(status == PARSE_OK);
+        assert(count == 1);
+        assert(strcmp(tokens[0], "W") == 0);
+
+        status = adventure_parse_command("vai o", tokens, &count);
+        if (status != PARSE_OK)
+                abort();
+        assert(status == PARSE_OK);
+        assert(count == 2);
+        assert(strcmp(tokens[0], "GO") == 0);
+        assert(strcmp(tokens[1], "W") == 0);
+
+        status = adventure_parse_command("pegar o lanterna", tokens, &count);
+        if (status != PARSE_OK)
+                abort();
+        assert(status == PARSE_OK);
+        assert(count == 2);
+        assert(strcmp(tokens[0], "GET") == 0);
+        assert(strcmp(tokens[1], "LAMP") == 0);
+
+        status = adventure_parse_command("no", tokens, &count);
+        if (status != PARSE_OK)
+                abort();
+        assert(status == PARSE_OK);
+        assert(count == 1);
+        assert(strcmp(tokens[0], "NW") == 0);
+
+        status = adventure_parse_command("ir no", tokens, &count);
+        if (status != PARSE_OK)
+                abort();
+        assert(status == PARSE_OK);
+        assert(count == 2);
+        assert(strcmp(tokens[0], "GO") == 0);
+        assert(strcmp(tokens[1], "NW") == 0);
+
+        status = adventure_parse_command("pegar no lanterna", tokens, &count);
+        if (status != PARSE_OK)
+                abort();
+        assert(status == PARSE_OK);
+        assert(count == 2);
+        assert(strcmp(tokens[0], "GET") == 0);
+        assert(strcmp(tokens[1], "LAMP") == 0);
+
+        status = adventure_parse_command("go e", tokens, &count);
+        if (status != PARSE_OK)
+                abort();
+        assert(status == PARSE_OK);
+        assert(count == 2);
+        assert(strcmp(tokens[0], "GO") == 0);
+        assert(strcmp(tokens[1], "E") == 0);
+}
+
+static void
 check_catalog_translation(void)
 {
         const char *po_path = PROJECT_SOURCE_DIR "/po/pt_BR.po";
@@ -126,6 +188,7 @@ main(void)
         check_two_word_with_stop();
         check_direction_synonym();
         check_too_many_words();
+        check_stopword_directions();
         check_catalog_translation();
         return 0;
 }
