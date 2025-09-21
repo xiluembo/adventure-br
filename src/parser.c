@@ -29,6 +29,17 @@ static const char *const stop_words[] = {
         "THE", "AN", "AT", "IN", "ON", "TO",
 };
 
+struct direction_stopword {
+        const char *word;
+        const char *token;
+};
+
+static const struct direction_stopword direction_stopwords[] = {
+        { "O", "W" },
+        { "NO", "NW" },
+        { "E", "E" },
+};
+
 static const struct synonym synonyms[] = {
         { "ABRIR", "OPEN" },
         { "ANDAR", "GO" },
@@ -193,6 +204,17 @@ static const char *lookup_synonym(const char *normalized)
         return NULL;
 }
 
+static const char *lookup_direction_stopword(const char *word)
+{
+        size_t i;
+
+        for (i = 0; i < sizeof(direction_stopwords) / sizeof(direction_stopwords[0]); ++i) {
+                if (strcmp(direction_stopwords[i].word, word) == 0)
+                        return direction_stopwords[i].token;
+        }
+        return NULL;
+}
+
 static int add_token(char tokens[2][WORDSIZE], size_t *count, const char *token)
 {
         if (*count >= 2) {
@@ -284,22 +306,50 @@ int adventure_parse_command(const char *line, char tokens[2][WORDSIZE], size_t *
         char buffer[WORDSIZE];
         char canonical[WORDSIZE];
         size_t found = 0;
+        char pending_direction[WORDSIZE];
+        int pending_direction_valid = 0;
 
         tokens[0][0] = tokens[1][0] = '\0';
 
         while (next_word(&cursor, buffer)) {
                 size_t i;
+                int stop;
+                const char *direction;
+
+                if (pending_direction_valid)
+                        pending_direction_valid = 0;
 
                 for (i = 0; buffer[i]; ++i)
                         buffer[i] = (char)toupper((unsigned char)buffer[i]);
 
-                if (is_stop_word(buffer))
+                stop = is_stop_word(buffer);
+                direction = stop ? lookup_direction_stopword(buffer) : NULL;
+                if (direction) {
+                        int allow_direction = (found == 0);
+
+                        if (!allow_direction && found > 0 &&
+                            strcmp(tokens[found - 1], "GO") == 0)
+                                allow_direction = 1;
+
+                        if (allow_direction) {
+                                snprintf(pending_direction, sizeof(pending_direction),
+                                         "%s", direction);
+                                pending_direction_valid = 1;
+                        }
+                }
+
+                if (stop)
                         continue;
 
                 if (!adventure_canonicalize_token(buffer, canonical, sizeof(canonical)))
                         snprintf(canonical, sizeof(canonical), "%s", buffer);
 
                 if (!add_token(tokens, &found, canonical))
+                        return PARSE_TOO_MANY_WORDS;
+        }
+
+        if (pending_direction_valid) {
+                if (!add_token(tokens, &found, pending_direction))
                         return PARSE_TOO_MANY_WORDS;
         }
 
