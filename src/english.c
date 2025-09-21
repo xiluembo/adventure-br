@@ -5,12 +5,13 @@
 \*		All other modules use "advdec.h".		*/
 
 #include <stdio.h> /* drv = 1.1st file 2.def 3.A	*/
-#include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 
 #include "advent.h"
 #include "advdec.h"
+#include "parser.h"
+#include "i18n.h"
 
 
 /*
@@ -18,13 +19,13 @@
 */
 int english(void)
 {
-	char *msg;
+	const char *msg;
 	int type1, type2, val1, val2;
 
 	verb = object = motion = 0;
 	type2 = val2 = -1;
 	type1 = val1 = -1;
-	msg = "bad grammar...";
+	msg = _("Bad grammar...");
 
 	getwords();
 
@@ -119,19 +120,32 @@ int analyze(char *word, int *type, int *value)
 */
 void getwords(void)
 {
-	char words[80], *wptr;
+        char line[256];
+        char tokens[2][WORDSIZE];
+        size_t count = 0;
+        int status;
 
-	fputs("> ", stdout);
-	word1[0] = word2[0] = '\0';
-	fflush(stdout);
-	if (NULL == fgets(words, 80, stdin))
-		exit(0);
-	wptr = words;
-	while ((*wptr = tolower(*wptr)))
-		++wptr;
-	sscanf(words, "%19s %19s", word1, word2);
-	if (dbugflg)
-		printf("WORD1 = %s, WORD2 = %s\n", word1, word2);
+        fputs("> ", stdout);
+        word1[0] = word2[0] = '\0';
+        fflush(stdout);
+        if (NULL == fgets(line, sizeof(line), stdin))
+                exit(0);
+
+        status = adventure_parse_command(line, tokens, &count);
+        if (status == PARSE_TOO_MANY_WORDS) {
+                printf("%s\n", adventure_two_word_error());
+                return;
+        }
+
+        if (count > 0)
+                strncpy(word1, tokens[0], WORDSIZE - 1);
+        if (count > 1)
+                strncpy(word2, tokens[1], WORDSIZE - 1);
+        word1[WORDSIZE - 1] = '\0';
+        word2[WORDSIZE - 1] = '\0';
+
+        if (dbugflg)
+                printf("WORD1 = %s, WORD2 = %s\n", word1, word2);
 }
 
 /*

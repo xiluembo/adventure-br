@@ -5,12 +5,13 @@
 \*		All other modules use "advdec.h".		*/
 
 #include <stdio.h> /* drv = 1.1st file 2.def 3.A	*/
-#include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
 
 #include "advent.h"
 #include "advdec.h"
+#include "parser.h"
+#include "i18n.h"
 
 #ifdef BUILTIN
 #include "advent1.h"
@@ -66,23 +67,25 @@ void gettrav(int loc)
 	Function to scan a file up to a specified
 	point and either print or return a string.
 */
-int rdupto(FILE *fdi, char uptoc, char print, char *string)
+size_t rdupto(FILE *fdi, char uptoc, char *string, size_t size)
 {
-	int c;
+        size_t len = 0;
+        int c;
 
-	while ((c = fgetc(fdi)) != uptoc) {
-		if (c == EOF)
-			return 0;
-		if (c == '\r')
-			continue;
-		if (print)
-			fputc(c, stdout);
-		else
-			*string++ = c;
-	}
-	if (!print)
-		*string = '\0';
-	return 1;
+        if (!string || !size)
+                return 0;
+
+        while ((c = fgetc(fdi)) != uptoc) {
+                if (c == EOF)
+                        return 0;
+                if (c == '\r')
+                        continue;
+                if (len + 1 < size)
+                        string[len++] = (char)c;
+        }
+
+        string[len] = '\0';
+        return len;
 }
 
 /*
@@ -136,18 +139,24 @@ int yes(int msg1, int msg2, int msg3)
 void rspeak(int msg)
 {
 #ifdef BUILTIN
-	fputs(adventtxt4[msg - 1], stdout);
+        emit_text(adventtxt4[msg - 1]);
 #else
-	if (msg == 54)
-		printf("ok.\n");
-	else {
-		if (dbugflg)
-			printf("Seek loc msg #%d @ %ld\n", msg, idx4[msg]);
-		fseek(fd4, idx4[msg - 1], SEEK_SET);
-		rdupto(fd4, '#', 1, 0);
-	}
+        if (msg == 54) {
+                printf("%s\n", _("ok."));
+                return;
+        }
+
+        if (dbugflg)
+                printf("Seek loc msg #%d @ %ld\n", msg, idx4[msg]);
+        fseek(fd4, idx4[msg - 1], SEEK_SET);
+        {
+                char buffer[TEXT_BUFFER];
+
+                if (rdupto(fd4, '#', buffer, sizeof(buffer)))
+                        emit_text(buffer);
+        }
 #endif
-	return;
+        return;
 }
 
 /*
@@ -156,33 +165,47 @@ void rspeak(int msg)
 void pspeak(int item, int state)
 {
 #ifdef BUILTIN
-	const char *p;
+        const char *p;
 
-	if (item > 64) {
-		bug(40);
-		return;
-	}
+        if (item > 64) {
+                bug(40);
+                return;
+        }
 
-	p = adventtxt3[item - 1];
-	if (p == NULL)
-		bug(31);
-	else {
-		int c;
-		int n = state + 2;
+        p = adventtxt3[item - 1];
+        if (p == NULL)
+                bug(31);
+        else {
+                int c;
+                int n = state + 2;
 
-		while (n--) {
-			while ((c = *p++) != '/') {
-				if (c == '\0')
-					bug(32);
-			}
-		}
-		for (n = 0; p[n] != '\0' && p[n] != '/'; n++)
-			putchar(p[n]);
-	}
+                while (n--) {
+                        while ((c = *p++) != '/') {
+                                if (c == '\0')
+                                        bug(32);
+                        }
+                }
+                {
+                        char buffer[TEXT_BUFFER];
+                        size_t len = 0;
+
+                        while (p[len] != '\0' && p[len] != '/' && len + 1 < sizeof(buffer)) {
+                                buffer[len] = p[len];
+                                ++len;
+                        }
+                        buffer[len] = '\0';
+                        emit_text(buffer);
+                }
+        }
 #else
-	fseek(fd3, idx3[item - 1], SEEK_SET);
-	rdskip(fd3, '/', state + 2, 0);
-	rdupto(fd3, '/', 1, 0);
+        fseek(fd3, idx3[item - 1], SEEK_SET);
+        rdskip(fd3, '/', state + 2, 0);
+        {
+                char buffer[TEXT_BUFFER];
+
+                if (rdupto(fd3, '/', buffer, sizeof(buffer)))
+                        emit_text(buffer);
+        }
 #endif
 }
 
@@ -192,10 +215,15 @@ void pspeak(int item, int state)
 void desclg(int loc)
 {
 #ifdef BUILTIN
-	fputs(adventtxt1[loc - 1], stdout);
+        emit_text(adventtxt1[loc - 1]);
 #else
-	fseek(fd1, idx1[loc - 1], SEEK_SET);
-	rdupto(fd1, '#', 1, 0);
+        fseek(fd1, idx1[loc - 1], SEEK_SET);
+        {
+                char buffer[TEXT_BUFFER];
+
+                if (rdupto(fd1, '#', buffer, sizeof(buffer)))
+                        emit_text(buffer);
+        }
 #endif
 }
 
@@ -205,10 +233,15 @@ void desclg(int loc)
 void descsh(int loc)
 {
 #ifdef BUILTIN
-	fputs(adventtxt2[loc - 1], stdout);
+        emit_text(adventtxt2[loc - 1]);
 #else
-	fseek(fd2, idx2[loc - 1], SEEK_SET);
-	rdupto(fd2, '#', 1, 0);
+        fseek(fd2, idx2[loc - 1], SEEK_SET);
+        {
+                char buffer[TEXT_BUFFER];
+
+                if (rdupto(fd2, '#', buffer, sizeof(buffer)))
+                        emit_text(buffer);
+        }
 #endif
 }
 
@@ -221,15 +254,19 @@ void descsh(int loc)
 	val  is the minimum acceptable value,
 		if != 0 return %1000
 */
-int vocab(char *word, int val)
+int vocab(const char *word, int val)
 {
-	int v1, v2;
+        int v1, v2;
+        char token[WORDSIZE];
 
-	if ((v1 = binary(word, wc, MAXWC)) >= 0) {
-		v2 = binary(word, wc, MAXWC - 1);
-		if (v2 < 0)
-			v2 = v1;
-		if (!val)
+        if (!adventure_canonicalize_token(word, token, sizeof(token)))
+                return -1;
+
+        if ((v1 = binary(token, wc, MAXWC)) >= 0) {
+                v2 = binary(token, wc, MAXWC - 1);
+                if (v2 < 0)
+                        v2 = v1;
+                if (!val)
 			return wc[v1].acode < wc[v2].acode ? wc[v1].acode : wc[v2].acode;
 		if (val <= wc[v1].acode)
 			return wc[v1].acode % 1000;
@@ -435,4 +472,13 @@ void bug(int n)
 {
 	printf("Fatal error number %d\n", n);
 	exit(-1);
+}
+#define TEXT_BUFFER 8192
+
+static void
+emit_text(const char *msg)
+{
+        const char *translated = _(msg);
+
+        fputs(translated, stdout);
 }

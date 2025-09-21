@@ -10,8 +10,10 @@ noinst_PROGRAMS = advent0
 
 advent_CPPFLAGS = -DDATADIR=\"$(pkgdatadir)\"
 advent_SOURCES  = advent.c database.c english.c itverb.c turn.c verb.c   \
-		  advcave.h advdec.h advdef.h advent.h advword.h proto.h \
-		  advent1.h advent2.h advent3.h advent4.h advtext.h
+                  parser.c                                                 \
+                  advcave.h advdec.h advdef.h advent.h advword.h proto.h \
+                  parser.h i18n.h                                        \
+                  advent1.h advent2.h advent3.h advent4.h advtext.h
 
 if GAMEDATA
 gamedir         = $(pkgdatadir)
