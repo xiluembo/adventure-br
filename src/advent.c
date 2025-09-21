@@ -9,6 +9,13 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
+#include <locale.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#include <io.h>
+#include <fcntl.h>
+#endif
 
 #include "advent.h"  /* #define preprocessor equates	*/
 #include "advword.h" /* definition of "word" array	*/
@@ -17,6 +24,35 @@
 #include "advtext.h" /* definition of "text" arrays	*/
 #endif
 #include "advdef.h"
+#include "i18n.h"
+
+#ifndef LOCALEDIR
+#define LOCALEDIR DATADIR "/locale"
+#endif
+
+static void
+initialize_locale(void)
+{
+        const char *dir;
+
+        setlocale(LC_ALL, "");
+
+#ifdef _WIN32
+        SetConsoleCP(CP_UTF8);
+        SetConsoleOutputCP(CP_UTF8);
+        _setmode(_fileno(stdout), _O_U8TEXT);
+        _setmode(_fileno(stderr), _O_U8TEXT);
+        _setmode(_fileno(stdin), _O_U8TEXT);
+#endif
+
+        dir = getenv("ADVENTURE_LOCALEDIR");
+        if (!dir || !*dir)
+                dir = LOCALEDIR;
+
+        bindtextdomain(PACKAGE, dir);
+        bind_textdomain_codeset(PACKAGE, "UTF-8");
+        textdomain(PACKAGE);
+}
 
 #define setmem(l, s, c) memset(l, c, s)
 
@@ -24,6 +60,7 @@ int main(int argc, char *argv[])
 {
 	int rflag; /* user restore request option	*/
 
+	initialize_locale();
 	rflag = 0;
 	dbugflg = 0;
 	while (--argc > 0) {
@@ -38,7 +75,7 @@ int main(int argc, char *argv[])
 			++dbugflg;
 			continue;
 		default:
-			printf("unknown flag: %c\n", argv[0][1]);
+			printf(_("unknown flag: %c\n"), argv[0][1]);
 			continue;
 		}
 	}

@@ -11,14 +11,14 @@ char *savefile  (int save, char *path, size_t len);
 
 /* database.c */
 void gettrav (int loc);
-int  rdupto  (FILE *fdi, char uptoc, char print, char *string);
+size_t rdupto (FILE *fdi, char uptoc, char *string, size_t size);
 void rdskip  (FILE *fdi, char skipc, int n, char rewind);
 int  yes     (int msg1, int msg2, int msg3);
 void rspeak  (int msg);
 void pspeak  (int item, int state);
 void desclg  (int loc);
 void descsh  (int loc);
-int  vocab   (char *word, int val);
+int  vocab   (const char *word, int val);
 int  binary  (char *w, struct wac wctable[], int maxwc);
 int  dark    (void);
 int  here    (int item);

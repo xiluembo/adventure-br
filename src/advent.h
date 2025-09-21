@@ -127,8 +127,8 @@
 	Structure definitions
 */
 struct wac {
-	char *aword;
-	int   acode;
+        const char *aword;
+        int   acode;
 };
 
 struct trav {
@@ -138,4 +138,6 @@ struct trav {
 };
 
 #include "proto.h"
+#ifdef HAVE_CONFIG_H
 #include "config.h"
+#endif
