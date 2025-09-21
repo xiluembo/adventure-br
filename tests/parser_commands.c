@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <libintl.h>
 #include <locale.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -33,6 +32,8 @@ check_single_word(void)
         char tokens[2][WORDSIZE];
         size_t count = 0;
         int status = adventure_parse_command("inventário", tokens, &count);
+        if (status != PARSE_OK)
+                abort();
         assert(status == PARSE_OK);
         assert(count == 1);
         assert(strcmp(tokens[0], "INVENTORY") == 0);
@@ -45,6 +46,8 @@ check_two_word_with_stop(void)
         char tokens[2][WORDSIZE];
         size_t count = 0;
         int status = adventure_parse_command("pegar a lanterna", tokens, &count);
+        if (status != PARSE_OK)
+                abort();
         assert(status == PARSE_OK);
         assert(count == 2);
         assert(strcmp(tokens[0], "GET") == 0);
@@ -57,6 +60,8 @@ check_direction_synonym(void)
         char tokens[2][WORDSIZE];
         size_t count = 0;
         int status = adventure_parse_command("ir para norte", tokens, &count);
+        if (status != PARSE_OK)
+                abort();
         assert(status == PARSE_OK);
         assert(count == 2);
         assert(strcmp(tokens[0], "GO") == 0);
@@ -69,6 +74,8 @@ check_too_many_words(void)
         char tokens[2][WORDSIZE];
         size_t count = 0;
         int status = adventure_parse_command("pegar a lanterna agora", tokens, &count);
+        if (status != PARSE_TOO_MANY_WORDS)
+                abort();
         assert(status == PARSE_TOO_MANY_WORDS);
 }
 
@@ -105,6 +112,8 @@ check_catalog_translation(void)
         }
 
         fclose(fp);
+        if (!found || !matched)
+                abort();
         assert(found);
         assert(matched);
 }

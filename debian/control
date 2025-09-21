@@ -3,7 +3,7 @@ Section: games
 Priority: optional
 Maintainer: Joachim Wiberg <troglobit@gmail.com>
 Homepage: https://github.com/troglobit/adventure
-Build-Depends: debhelper (>= 10)
+Build-Depends: debhelper (>= 10), cmake, gettext
 Standards-Version: 4.3.0
 Vcs-Git: https://github.com/troglobit/adventure.git
 Vcs-Browser: https://github.com/troglobit/adventure/commits/

@@ -1,7 +1,5 @@
 AC_INIT([advent],[4.2],[https://github.com/troglobit/adventure/issues])
-AC_CONFIG_AUX_DIR(aux)
-AM_INIT_AUTOMAKE([1.11 foreign])
-AM_SILENT_RULES([yes])
+AC_MSG_ERROR([Autotools support has been retired. Please configure the project with CMake.])
 
 AC_CONFIG_SRCDIR([src/advent.c])
 AC_CONFIG_HEADERS([config.h])

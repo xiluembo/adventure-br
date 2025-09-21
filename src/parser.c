@@ -11,6 +11,10 @@
 #define WORDSIZE 20
 #endif
 
+#ifndef ADVENTURE_STRICT_2WORD_INPUT
+#define ADVENTURE_STRICT_2WORD_INPUT 1
+#endif
+
 struct synonym {
         const char *term;
         const char *token;
@@ -191,11 +195,15 @@ static const char *lookup_synonym(const char *normalized)
 
 static int add_token(char tokens[2][WORDSIZE], size_t *count, const char *token)
 {
-        if (*count >= 2)
+        if (*count >= 2) {
+#if ADVENTURE_STRICT_2WORD_INPUT
                 return 0;
+#else
+                return 1;
+#endif
+        }
 
-        strncpy(tokens[*count], token, WORDSIZE - 1);
-        tokens[*count][WORDSIZE - 1] = '\0';
+        snprintf(tokens[*count], WORDSIZE, "%s", token);
         (*count)++;
         return 1;
 }
@@ -289,8 +297,7 @@ int adventure_parse_command(const char *line, char tokens[2][WORDSIZE], size_t *
                         continue;
 
                 if (!adventure_canonicalize_token(buffer, canonical, sizeof(canonical)))
-                        strncpy(canonical, buffer, sizeof(canonical) - 1);
-                canonical[sizeof(canonical) - 1] = '\0';
+                        snprintf(canonical, sizeof(canonical), "%s", buffer);
 
                 if (!add_token(tokens, &found, canonical))
                         return PARSE_TOO_MANY_WORDS;

@@ -21,27 +21,30 @@ jobs:
         compiler: [gcc, clang]
       fail-fast: false
     env:
-      MAKEFLAGS: -j3
       CC: ${{ matrix.compiler }}
     steps:
       - name: Install dependencies
         run: |
           sudo apt-get -y update
-          sudo apt-get -y install tree
+          sudo apt-get -y install cmake gettext tree
       - uses: actions/checkout@v3
       - name: Configure
         run: |
-          ./autogen.sh
-          ./configure --prefix=
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER=${{ matrix.compiler }} \
+            -DCMAKE_INSTALL_PREFIX=/usr \
+            -DADVENTURE_WARN_AS_ERROR=ON
       - name: Build
-        run: |
-          make V=1
+        run: cmake --build build --parallel
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
       - name: Install to ~/tmp and Inspect
         run: |
-          DESTDIR=~/tmp make install-strip
+          DESTDIR=~/tmp cmake --install build --strip
           tree ~/tmp
-          ldd ~/tmp/bin/advent
-          size ~/tmp/bin/advent
+          ldd ~/tmp/usr/bin/advent
+          size ~/tmp/usr/bin/advent
   msys2:
     runs-on: windows-latest
     defaults:
@@ -53,17 +56,20 @@ jobs:
         with:
           msystem: MINGW64
           update: true
-          install: git gcc make autoconf automake ncurses tree
+          install: git gcc cmake ninja gettext gettext-devel tree
       - name: Configure
         run: |
-          ./autogen.sh
-          ./configure --prefix=
+          cmake -S . -B build -G "Ninja" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/mingw64 \
+            -DADVENTURE_WARN_AS_ERROR=ON
       - name: Build
-        run: |
-          make
+        run: cmake --build build --parallel
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
       - name: Install
         run: |
-          DESTDIR=~/tmp make install-strip
+          DESTDIR=~/tmp cmake --install build --strip
           tree ~/tmp
           ldd  ~/tmp/mingw64/bin/advent.exe
           size ~/tmp/mingw64/bin/advent.exe
@@ -77,13 +83,10 @@ jobs:
       - name: Installing dependencies
         run: |
           apt-get update
-          apt-get install -y build-essential libncurses-dev autoconf automake \
-          		     dpkg-dev debhelper devscripts
+          apt-get install -y build-essential libncurses-dev cmake gettext \
+                             dpkg-dev debhelper devscripts
       - name: Building Debian package
         run: |
-          ./autogen.sh
-          ./configure
-          make distcheck
-          make package
+          dpkg-buildpackage -us -uc
           echo "== advent.changes ================================================"
           cat ../advent*.changes

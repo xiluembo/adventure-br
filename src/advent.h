@@ -1,6 +1,8 @@
 /*	header ADVENT.H						*\
 \*	WARNING: HEADER file for all adventure modules		*/
 
+#ifndef ADVENT_H
+#define ADVENT_H
 #define MAXOBJ      100		/* max # of objects in cave	*/
 #define MAXWC       306		/* max # of adventure words	*/
 #define MAXLOC      140		/* max # of cave locations	*/
@@ -141,3 +143,4 @@ struct trav {
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+#endif /* ADVENT_H */
