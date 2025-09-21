@@ -41,37 +41,7 @@ static const struct direction_stopword direction_stopwords[] = {
 };
 
 static const struct synonym synonyms[] = {
-        { "ABRIR", "OPEN" },
-        { "ANDAR", "GO" },
-        { "APAGAR", "OFF" },
-        { "DESLIGAR", "OFF" },
-        { "ENTRAR", "IN" },
-        { "EXAMINAR", "LOOK" },
-        { "GUARDAR", "DROP" },
-        { "INVENTARIO", "INVENTORY" },
-        { "IR", "GO" },
-        { "LARGAR", "DROP" },
-        { "LIGAR", "ON" },
-        { "LIGUE", "ON" },
-        { "NORTE", "NORTH" },
-        { "LESTE", "EAST" },
-        { "OESTE", "WEST" },
-        { "SUL", "SOUTH" },
-        { "OLHAR", "LOOK" },
-        { "PEGAR", "GET" },
-        { "PEGUE", "GET" },
-        { "PEGUEI", "GET" },
-        { "PEGANDO", "GET" },
-        { "LANTERNA", "LAMP" },
-        { "LANTERNAS", "LAMP" },
-        { "EXAMINA", "LOOK" },
-        { "VER", "LOOK" },
-        { "USAR", "USE" },
-        { "USE", "USE" },
-        { "VAI", "GO" },
-        { "VAMOS", "GO" },
-        { "VOLTA", "BACK" },
-        { "VOLTE", "BACK" },
+#include "synonyms_pt.inc"
 };
 
 static const char too_many_words_msg[] = N_("Commands are limited to two significant words.");
