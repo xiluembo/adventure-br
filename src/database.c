@@ -7,11 +7,16 @@
 #include <stdio.h> /* drv = 1.1st file 2.def 3.A	*/
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include "advent.h"
 #include "advdec.h"
 #include "parser.h"
 #include "i18n.h"
+
+#define TEXT_BUFFER 8192
+
+static void emit_text(const char *msg);
 
 #ifdef BUILTIN
 #include "advent1.h"
@@ -473,8 +478,6 @@ void bug(int n)
 	printf("Fatal error number %d\n", n);
 	exit(-1);
 }
-#define TEXT_BUFFER 8192
-
 static void
 emit_text(const char *msg)
 {

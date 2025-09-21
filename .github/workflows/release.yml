@@ -12,15 +12,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+          sudo apt-get -y update
+          sudo apt-get -y install cmake gettext
       - name: Creating Makefiles ...
         run: |
-          ./autogen.sh
-          ./configure --prefix=
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/usr \
+            -DADVENTURE_WARN_AS_ERROR=ON
       - name: Build release ...
         run: |
-          make release
+          cmake --build build --parallel
+          cpack --config build/CPackSourceConfig.cmake
           mkdir -p artifacts/
-          mv ../*.tar.* artifacts/
+          mv build/*.tar.* artifacts/
       - name: Extract ChangeLog entry ...
         run: |
           awk '/-----*/{if (x == 1) exit; x=1;next}x' ChangeLog.md \

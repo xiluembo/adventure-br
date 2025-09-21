@@ -16,6 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+          sudo apt-get -y update
+          sudo apt-get -y install cmake gettext
       - name: Fetch latest Coverity Scan MD5
         id: var
         env:
@@ -50,12 +54,14 @@ jobs:
           tar xzf coverity-latest.tar.gz --strip 1 -C coverity
       - name: Configure
         run: |
-          ./autogen.sh
-          ./configure --prefix=
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/usr \
+            -DADVENTURE_WARN_AS_ERROR=ON
       - name: Build
         run: |
           export PATH=`pwd`/coverity/bin:$PATH
-          cov-build --dir cov-int make
+          cov-build --dir cov-int cmake --build build --parallel
       - name: Submit results to Coverity Scan
         env:
           TOKEN: ${{ secrets.COVERITY_SCAN_TOKEN }}

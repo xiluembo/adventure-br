@@ -66,25 +66,32 @@ be able to do something.  The game parser uses only simple two word
 Build & Install
 ---------------
 
-It is highly recommended to use released tarballs since they include a
-ready-made configure script which generates a portable `Makefile`.  The
-only requirements for building released versions is `make` and a working
-C compiler:
+The project now uses CMake for builds.  A typical build on Unix-like
+systems looks like this:
 
-    ./configure
-    make
+```
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
 
-The following command installs the game into `/usr/local/bin`, and the
-manual and other documents in `/usr/local/share`.  You can change this
-by calling `configure --prefix=PATH`, to install elsewhere.  For more
-help, see `configure --help`:
+To install into the default prefix (`/usr/local`) run:
 
-    sudo make install-strip
+```
+sudo cmake --install build --strip
+```
 
-**Note:** when checking out code from GIT, use <kbd>./autogen.sh</kbd>
-to generate a `configure` script.  It is a generated file and otherwise
-only included in released tarballs.  This is the only time you need the
-`autoconf` and `automake` tools.
+Use `-DCMAKE_INSTALL_PREFIX=/usr` (or another path) to install
+elsewhere.  Additional configuration toggles include:
+
+* `-DADVENTURE_ENABLE_GETTEXT=OFF` to build without external gettext
+  and rely on the internal string tables.
+* `-DADVENTURE_STRICT_2WORD_INPUT=OFF` to relax the parser's
+  two-word limit.
+* `-DADVENTURE_WARN_AS_ERROR=ON` to treat compiler warnings as errors.
+
+The legacy Autotools build system has been retired; `autogen.sh` and
+`configure` now only emit a hint to use CMake.
 
 
 Origin & References

@@ -138,11 +138,13 @@ void getwords(void)
         }
 
         if (count > 0)
-                strncpy(word1, tokens[0], WORDSIZE - 1);
+                snprintf(word1, WORDSIZE, "%s", tokens[0]);
         if (count > 1)
-                strncpy(word2, tokens[1], WORDSIZE - 1);
-        word1[WORDSIZE - 1] = '\0';
-        word2[WORDSIZE - 1] = '\0';
+                snprintf(word2, WORDSIZE, "%s", tokens[1]);
+        if (count <= 0)
+                word1[0] = '\0';
+        if (count <= 1)
+                word2[0] = '\0';
 
         if (dbugflg)
                 printf("WORD1 = %s, WORD2 = %s\n", word1, word2);
