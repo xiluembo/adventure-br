@@ -1,6 +1,6 @@
 FROM alpine:latest
 RUN apk --no-cache add --virtual .build-dependencies \
-  alpine-sdk cmake gettext gettext-dev
+  alpine-sdk cmake gettext gettext-dev gettext-static
 
 WORKDIR /root
 COPY . ./
